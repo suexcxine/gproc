@@ -345,7 +345,7 @@ handle_DOWN(Node, S, _E) ->
 check_sync_requests(Node, #state{sync_requests = SReqs} = S) ->
     SReqs1 = lists:flatmap(
                fun({From, Ns}) ->
-                       case Ns -- [Node] of
+                       case lists:delete(Node, Ns) of
                            [] ->
                                gen_leader:reply(From, {leader, reply, true}),
                                [];
@@ -357,7 +357,7 @@ check_sync_requests(Node, #state{sync_requests = SReqs} = S) ->
 
 handle_leader_call(sync, From, #state{sync_requests = SReqs} = S, E) ->
     GenLeader = gen_leader,
-    case GenLeader:alive(E) -- [node()] of
+    case lists:delete(node(), GenLeader:alive(E)) of
         [] ->
             {reply, true, S};
         Alive ->
